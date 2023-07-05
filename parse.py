@@ -7,7 +7,7 @@ import xmltodict
 from ebooklib import epub
 
 # перед парсингом открыть подходящим редактором файлы
-# для того, чтобы понять, где искать метадату и сделать мэппинг ключей
+# для того, чтобы понять, где искать метадату, сделать мэппинг индексов
 EPUB_MAP = {
     "Author": "creator",
     "Title": "title",
@@ -29,42 +29,44 @@ warnings.filterwarnings("ignore")
 book_name = sys.argv[1]
 
 if book_name.endswith(".epub"):
-    # сконвертировать epub в json
     book = epub.read_epub(book_name)
-    # достать метадату по ключу, если не нашли - перехватить исключение
+    # достать метадату в json, если не нашли - перехватить исключение
     try:
         meta = book.metadata["http://purl.org/dc/elements/1.1/"]
     except KeyError:
         print("Метадата о книге отсутствует")
     else:
         # вывести данные согласно мэппингу
-        for key, value in EPUB_MAP.items():
-            print("{}: {}".format(key, meta[value][0][0]))
+        for field, index in EPUB_MAP.items():
+            data = meta.get(index)
+            if data:
+                print("{}: {}".format(field, data[0][0]))
 
 elif book_name.endswith(".fb2"):
     with (
         # считать файл как xml побайтно
         open(book_name, "rb") as file_in,
-        # метадату удобно анализировать в json в отдельном файле
-        # оставил как пример
-        open("output.json", "w", encoding="UTF-8") as file_out,
+        # целую книгу удобно анализировать в json в отдельном файле
+        open("output_fb2.json", "w", encoding="UTF-8") as file_out,
     ):
         lines = file_in.read()
         # сконвертировать xml в json
         data = xmltodict.parse(lines)
+        # файл для анализа
+        json.dump(data, file_out, ensure_ascii=False, indent=4)
         try:
             # достать метадату, если не нашли - перехватить исключение
             meta = data["FictionBook"]["description"]["publish-info"]
         except KeyError:
             print("Метадата о книге отсутствует")
         else:
-            # анализировать формат вывода метадаты
-            json.dump(data, file_out, ensure_ascii=False, indent=4)
-            for key, value in FB2_MAP.items():
-                if value == "sequence":
-                    # достать автора по отдельному ключу в словаре 'sequence'
-                    print("{}: {}".format(key, meta[value]["@name"]))
-                else:
-                    print("{}: {}".format(key, meta[value]))
+            for field, index in FB2_MAP.items():
+                data = meta.get(index)
+                if data:
+                    if index == "sequence":
+                        # достать автора по ключу из отдельного словаря
+                        print("{}: {}".format(field, data.get("@name", "")))
+                    else:
+                        print("{}: {}".format(field, data))
 else:
     print("Неверный формат файла")

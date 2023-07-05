@@ -17,12 +17,13 @@
 
 `pip install -r requirements.txt`
 
-### Задание 1 - файл Jupiter Notebook "task_1.ipynb"
+### Задание 1 - см. файл Jupiter Notebook "task_1.ipynb"
 
-### Запуск парсера
+### Задание 2 - запуск парсера:
 
-`python parse.py TRANSHUMANISM.fb2`
-`python parse.py TRANSHUMANISM.epub`
-`python parse.py КГБТ.fb2`
-`python parse.py КГБТ.epub`
+`python parse.py 'TRANSHUMANISM.epub'`
+`python parse.py 'КГБТ.epub'`
+`python parse.py 'TRANSHUMANISM.fb2'`
+`python parse.py 'КГБТ.fb2'`
+
 
